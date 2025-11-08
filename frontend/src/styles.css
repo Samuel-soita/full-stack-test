@@ -1,0 +1,414 @@
+/* ==========================
+  Global Design System
+========================== */
+:root {
+  --gap: 16px;
+  --radius: 12px;
+  --primary: #0069ff;
+  --primary-hover: #0053cc;
+  --text: #1a1a1a;
+  --muted: #777;
+  --bg-gradient: linear-gradient(135deg, #e3f2ff 0%, #cde3ff 50%, #b0d0ff 100%);
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================
+  Base Styling
+========================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", system-ui, Arial, sans-serif;
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-gradient);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ==========================
+  Header
+========================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--gap);
+}
+
+.header h1 {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.cart {
+  background: var(--primary);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+/* ==========================
+  Controls
+========================== */
+.controls {
+  margin-bottom: var(--gap);
+}
+
+select {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+/* ==========================
+  Product Grid
+========================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--gap);
+}
+
+/* ==========================
+  Card Component
+========================== */
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card.card-out {
+  opacity: 0.75;
+  filter: grayscale(0.3);
+}
+
+/* ==========================
+  Image Wrapper
+========================== */
+.imgWrap {
+  width: 100%;
+  padding-top: 60%;
+  position: relative;
+  overflow: hidden;
+}
+
+.imgWrap img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .imgWrap img {
+  transform: scale(1.05);
+}
+
+/* Overlay for out-of-stock */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================
+   Card Body
+========================== */
+.body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.category {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.variants small {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ==========================
+  Meta Section
+========================== */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.price {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ==========================
+  Buttons
+========================== */
+.btn {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-disabled,
+.btn[disabled] {
+  background: #999;
+  cursor: not-allowed;
+}
+
+/* ==========================
+  Responsive
+========================== */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================
+  Add Product Button
+========================== */
+.add-product-toggle {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.add-product-toggle:hover {
+  background: var(--primary-hover);
+}
+
+.add-product-toggle:active {
+  transform: scale(0.97);
+}
+
+/* ==========================
+  Add Product Form
+========================== */
+.add-product-form {
+  margin-top: var(--gap);
+  background: #fff;
+  padding: var(--gap);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.add-product-form input {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+.add-product-form button {
+  align-self: flex-start; /* aligns button with inputs */
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.add-product-form button:hover {
+  background: var(--primary-hover);
+}
+
+.add-product-form button:active {
+  transform: scale(0.97);
+}
+
+/* Optional: toast feedback for add product */
+.toast {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* ==========================
+  Add Product Button
+========================== */
+.add-product-toggle {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.add-product-toggle:hover {
+  background: var(--primary-hover);
+}
+
+.add-product-toggle:active {
+  transform: scale(0.98);
+}
+
+/* ==========================
+  Cart Top Styling
+========================== */
+.cart-top {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: var(--gap);
+  margin-bottom: var(--gap);
+  box-shadow: var(--shadow);
+}
+
+.cart-top h2 {
+  margin: 0 0 var(--gap) 0;
+  color: var(--primary);
+}
+
+.cart-top ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--gap) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: #f9f9f9;
+  gap: 10px;
+}
+
+.cart-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.cart-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart-name {
+  font-weight: 600;
+}
+
+.cart-qty,
+.cart-price {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.cart-item button {
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  border: none;
+  background: #ff4d4f;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s ease;
+}
+
+.cart-item button:hover {
+  background: #d9363e;
+}
+
+.cart-top strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+

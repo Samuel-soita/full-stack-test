@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // Node.js + TypeScript setup
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "strict": true,
+
+    // Enable Node.js global types (like process, __dirname, etc)
+    "types": ["node"],
+
+    // Optional niceties
+    "sourceMap": true,
+    "resolveJsonModule": true,
+
+    // Output
+    // 👇 Allow both `src/` and `prisma/` to contain TypeScript files
+    "rootDir": ".",          
+    "outDir": "./dist"
+  },
+  "include": ["src", "prisma"],
+  "exclude": ["node_modules"]
+}
