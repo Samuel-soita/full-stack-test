@@ -35,7 +35,6 @@ type CartItem = {
   variants?: Variant[];
 };
 
-// ✅ Backend base URL
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
 export default function App() {
@@ -47,7 +46,7 @@ export default function App() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // Form fields
+  // Form state
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [cat, setCat] = useState("");
@@ -56,7 +55,7 @@ export default function App() {
   const [quantity, setQuantity] = useState<number>(1);
 
   // ----------------------------------
-  // Fetch Products
+  // 🧩 Fetch Products
   // ----------------------------------
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,26 +81,30 @@ export default function App() {
   useEffect(() => { load(); }, [load]);
 
   // ----------------------------------
-  // Get Image Source (local or remote)
+  // 🖼️ Image Source Resolver
   // ----------------------------------
   const getImageSrc = (url?: string) => {
     if (!url) return `${API_BASE}/uploads/no-image.png`;
 
-    try {
-      const parsed = new URL(url);
-      return parsed.href; // valid external image
-    } catch {
-      // treat as backend upload path
-      const normalized = url.startsWith("/") ? url.substring(1) : url;
-      return `${API_BASE}/uploads/${normalized}`;
+    // If already a complete URL (external or backend)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
     }
+
+    // If already in /uploads folder
+    if (url.startsWith("/uploads") || url.startsWith("uploads")) {
+      return `${API_BASE}/${url.replace(/^\/?/, "")}`;
+    }
+
+    // Otherwise, assume it’s a file name
+    return `${API_BASE}/uploads/${url}`;
   };
 
   // ----------------------------------
-  // Add to Cart
+  // 🛒 Add to Cart
   // ----------------------------------
   const addToCart = (product: Product) => {
-    if (!product.inStock) return;
+    if (!product.inStock) return showToast("❌ Out of stock");
 
     setProducts(prev =>
       prev.map(p =>
@@ -143,7 +146,7 @@ export default function App() {
   };
 
   // ----------------------------------
-  // Remove from Cart
+  // ❌ Remove from Cart
   // ----------------------------------
   const removeFromCart = (productId: number) => {
     setCart(prev => prev.filter(item => item.productId !== productId));
@@ -158,7 +161,7 @@ export default function App() {
   };
 
   // ----------------------------------
-  // Add Product Form Submit
+  // ➕ Add Product
   // ----------------------------------
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,14 +194,14 @@ export default function App() {
 
   const showToast = (msg: string) => {
     setFeedback(msg);
-    setTimeout(() => setFeedback(null), 2000);
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const categories = Array.from(new Set(["All", ...products.map(p => p.category)]));
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // ----------------------------------
-  // Render UI
+  // 🧱 Render
   // ----------------------------------
   return (
     <div className="container">
@@ -209,7 +212,7 @@ export default function App() {
         </button>
       </header>
 
-      {/* Add Product Form */}
+      {/* Product Form */}
       {showForm && (
         <form onSubmit={handleAddProduct} className="add-product-form">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Product Name" required />
@@ -261,7 +264,7 @@ export default function App() {
         <strong>Total: ${cartTotal.toFixed(2)}</strong>
       </section>
 
-      {/* Filter */}
+      {/* Filters */}
       <div className="controls">
         <label>
           Category:

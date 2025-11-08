@@ -60,11 +60,21 @@ export default function ProductCard({ product, onAddToCart }: Props) {
       : "Out of Stock";
 
   // -----------------------------
-  // Image fallback logic
+  // Image logic (fixed)
   // -----------------------------
-  const imgSrc = !imgError
-    ? imageUrl || "/uploads/no-image.png"  // fallback to local
-    : "https://via.placeholder.com/400x300?text=Image+Unavailable";
+  const backendURL = import.meta.env.VITE_API_BASE;
+  const isExternal =
+    imageUrl?.startsWith("http://") || imageUrl?.startsWith("https://");
+
+  let imgSrc = imageUrl
+    ? isExternal
+      ? imageUrl
+      : `${backendURL}${imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl}`
+    : "/uploads/no-image.png";
+
+  if (imgError) {
+    imgSrc = "https://via.placeholder.com/400x300?text=Image+Unavailable";
+  }
 
   return (
     <article
@@ -78,13 +88,19 @@ export default function ProductCard({ product, onAddToCart }: Props) {
           onError={() => setImgError(true)}
           loading="lazy"
         />
-        <div className={`badge ${!inStock || quantity <= 0 ? "badge-out" : "badge-stock"}`}>
+        <div
+          className={`badge ${
+            !inStock || quantity <= 0 ? "badge-out" : "badge-stock"
+          }`}
+        >
           {stockLabel}
         </div>
       </div>
 
       <div className="body">
-        <h3 className="title" title={name}>{name}</h3>
+        <h3 className="title" title={name}>
+          {name}
+        </h3>
         <p className="category">{category}</p>
 
         {parsedVariants.length > 0 && (
@@ -92,7 +108,12 @@ export default function ProductCard({ product, onAddToCart }: Props) {
             <small>
               Variants:{" "}
               {parsedVariants
-                .map(v => `${v.name}${v.options?.length ? ` (${v.options.join(", ")})` : ""}`)
+                .map(
+                  (v) =>
+                    `${v.name}${
+                      v.options?.length ? ` (${v.options.join(", ")})` : ""
+                    }`
+                )
                 .join("; ")}
             </small>
           </div>
@@ -101,12 +122,18 @@ export default function ProductCard({ product, onAddToCart }: Props) {
         <div className="meta">
           <strong className="price">${price.toFixed(2)}</strong>
           <button
-            className={`btn ${!inStock || quantity <= 0 ? "btn-disabled" : ""}`}
+            className={`btn ${
+              !inStock || quantity <= 0 ? "btn-disabled" : ""
+            }`}
             onClick={handleAddToCart}
             disabled={!inStock || quantity <= 0 || isAdding}
             title={inStock ? "Add to cart" : "Out of stock"}
           >
-            {isAdding ? "Adding..." : quantity <= 0 ? "Out of Stock" : "Add to Cart"}
+            {isAdding
+              ? "Adding..."
+              : quantity <= 0
+              ? "Out of Stock"
+              : "Add to Cart"}
           </button>
         </div>
       </div>
