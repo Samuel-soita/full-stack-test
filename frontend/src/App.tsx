@@ -35,6 +35,9 @@ type CartItem = {
   variants?: Variant[];
 };
 
+// ✅ Backend base URL
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -44,7 +47,7 @@ export default function App() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
+  // Form fields
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [cat, setCat] = useState("");
@@ -52,15 +55,15 @@ export default function App() {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [quantity, setQuantity] = useState<number>(1);
 
-  // -----------------------------
-  // Fetch products
-  // -----------------------------
+  // ----------------------------------
+  // Fetch Products
+  // ----------------------------------
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const c = category === "All" ? undefined : category;
-      const data: Product[] = await fetchProducts(c);
+      const filter = category === "All" ? undefined : category;
+      const data = await fetchProducts(filter);
       setProducts(
         (data || []).map((p: Product) => ({
           ...p,
@@ -70,7 +73,7 @@ export default function App() {
       );
     } catch (err) {
       console.error(err);
-      setError("Failed to load products.");
+      setError("⚠️ Failed to load products. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,25 +81,27 @@ export default function App() {
 
   useEffect(() => { load(); }, [load]);
 
-  // -----------------------------
-  // Helper: validate image URL
-  // -----------------------------
+  // ----------------------------------
+  // Get Image Source (local or remote)
+  // ----------------------------------
   const getImageSrc = (url?: string) => {
-    if (!url) return "/uploads/no-image.png";
+    if (!url) return `${API_BASE}/uploads/no-image.png`;
+
     try {
-      const u = new URL(url);
-      return u.href;
+      const parsed = new URL(url);
+      return parsed.href; // valid external image
     } catch {
-      // if invalid URL, treat as local path
-      return url.startsWith("/") ? url : `/images/${url}`;
+      // treat as backend upload path
+      const normalized = url.startsWith("/") ? url.substring(1) : url;
+      return `${API_BASE}/uploads/${normalized}`;
     }
   };
 
-  // -----------------------------
-  // Add to cart
-  // -----------------------------
+  // ----------------------------------
+  // Add to Cart
+  // ----------------------------------
   const addToCart = (product: Product) => {
-    if (!product.quantity || product.quantity <= 0) return;
+    if (!product.inStock) return;
 
     setProducts(prev =>
       prev.map(p =>
@@ -108,9 +113,11 @@ export default function App() {
 
     setCart(prev => {
       const existing = prev.find(item => item.productId === product.id);
-      const parsedVariants = typeof product.variants === "string"
-        ? JSON.parse(product.variants || "[]")
-        : product.variants;
+      const parsedVariants =
+        typeof product.variants === "string"
+          ? JSON.parse(product.variants || "[]")
+          : product.variants;
+
       if (existing) {
         return prev.map(item =>
           item.productId === product.id
@@ -118,6 +125,7 @@ export default function App() {
             : item
         );
       }
+
       return [
         ...prev,
         {
@@ -125,19 +133,18 @@ export default function App() {
           name: product.name,
           price: product.price,
           quantity: 1,
-          imageUrl: product.imageUrl,
+          imageUrl: getImageSrc(product.imageUrl),
           variants: parsedVariants,
         },
       ];
     });
 
-    setFeedback(" Added to cart!");
-    setTimeout(() => setFeedback(null), 1500);
+    showToast("🛒 Added to cart!");
   };
 
-  // -----------------------------
-  // Remove from cart
-  // -----------------------------
+  // ----------------------------------
+  // Remove from Cart
+  // ----------------------------------
   const removeFromCart = (productId: number) => {
     setCart(prev => prev.filter(item => item.productId !== productId));
     setProducts(prev =>
@@ -147,13 +154,12 @@ export default function App() {
           : p
       )
     );
-    setFeedback(" Removed from cart");
-    setTimeout(() => setFeedback(null), 1500);
+    showToast("🗑️ Removed from cart");
   };
 
-  // -----------------------------
-  // Add product form submit
-  // -----------------------------
+  // ----------------------------------
+  // Add Product Form Submit
+  // ----------------------------------
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload: ProductInput = {
@@ -168,27 +174,37 @@ export default function App() {
 
     try {
       await createProduct(payload);
-      setFeedback(" Product added!");
-      // reset form
-      setName(""); setPrice(0); setCat(""); setImageUrl(""); setVariants([]); setQuantity(1); setShowForm(false);
+      showToast("✅ Product added!");
+      resetForm();
       load();
-      setTimeout(() => setFeedback(null), 2000);
-    } catch (err: unknown) {
+    } catch (err) {
       console.error(err);
       const axiosError = err as AxiosError<{ message: string }>;
-      setError(axiosError.response?.data?.message || "Failed to add product");
+      setError(axiosError.response?.data?.message || "❌ Failed to add product");
       setTimeout(() => setError(null), 3000);
     }
+  };
+
+  const resetForm = () => {
+    setName(""); setPrice(0); setCat(""); setImageUrl(""); setVariants([]); setQuantity(1); setShowForm(false);
+  };
+
+  const showToast = (msg: string) => {
+    setFeedback(msg);
+    setTimeout(() => setFeedback(null), 2000);
   };
 
   const categories = Array.from(new Set(["All", ...products.map(p => p.category)]));
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  // ----------------------------------
+  // Render UI
+  // ----------------------------------
   return (
     <div className="container">
       <header className="header">
         <h1>🛍️ Product Catalog</h1>
-        <button onClick={() => setShowForm(!showForm)}>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "Add Product"}
         </button>
       </header>
@@ -199,7 +215,7 @@ export default function App() {
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Product Name" required />
           <input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} placeholder="Price" required />
           <input value={cat} onChange={e => setCat(e.target.value)} placeholder="Category" required />
-          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL (local or external)" />
+          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL (upload or external)" />
           <input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} placeholder="Quantity" min={1} required />
           <input
             value={variants.map(v => `${v.name}:${v.options?.join(",")}`).join(";")}
@@ -212,13 +228,13 @@ export default function App() {
             }}
             placeholder="Variants (Size:S,M,L;Color:Red,Blue)"
           />
-          <button type="submit">Add Product</button>
+          <button type="submit" className="btn-submit">Save Product</button>
         </form>
       )}
 
-      {/* Cart */}
+      {/* Cart Section */}
       <section className="cart-top">
-        <h2>My Cart</h2>
+        <h2>🛒 My Cart</h2>
         {cart.length === 0 ? (
           <p>Cart is empty.</p>
         ) : (
@@ -226,18 +242,18 @@ export default function App() {
             {cart.map(item => (
               <li key={item.productId} className="cart-item">
                 <img
-                  src={getImageSrc(item.imageUrl)}
+                  src={item.imageUrl || `${API_BASE}/uploads/no-image.png`}
                   alt={item.name}
                   width={50}
                   height={50}
-                  onError={(e) => e.currentTarget.src = "/uploads/no-image.png"}
+                  onError={(e) => e.currentTarget.src = `${API_BASE}/uploads/no-image.png`}
                 />
                 <div className="cart-info">
                   <span className="cart-name">{item.name}</span>
                   <span className="cart-qty">Qty: {item.quantity}</span>
                   <span className="cart-price">${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
-                <button onClick={() => removeFromCart(item.productId)}>Remove</button>
+                <button className="btn-remove" onClick={() => removeFromCart(item.productId)}>Remove</button>
               </li>
             ))}
           </ul>
@@ -245,7 +261,7 @@ export default function App() {
         <strong>Total: ${cartTotal.toFixed(2)}</strong>
       </section>
 
-      {/* Category Filter */}
+      {/* Filter */}
       <div className="controls">
         <label>
           Category:
